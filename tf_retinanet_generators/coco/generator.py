@@ -1,4 +1,4 @@
-from tf_retinanet.generator import Generator
+from tf_retinanet.generators import Generator
 from tf_retinanet.utils.image import read_image_bgr
 
 import os
