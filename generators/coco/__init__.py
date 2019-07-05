@@ -1,4 +1,5 @@
 from .generator import CocoGenerator
+from .eval      import CocoEval
 
 def from_config(config, **kwargs):
 	generators = {}
@@ -7,4 +8,6 @@ def from_config(config, **kwargs):
 
 	if config['validation_set_name'] is not None:
 		generators['validation'] = CocoGenerator(config['data_dir'], config['validation_set_name'], **kwargs)
+
+	generators['custom_evaluation'] = CocoEval
 	return generators
