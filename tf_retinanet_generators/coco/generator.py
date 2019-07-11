@@ -22,7 +22,7 @@ class CocoGenerator(Generator):
 		"""
 		self.data_dir  = data_dir
 		self.set_name  = set_name
-		self.coco	   = COCO(os.path.join(data_dir, 'annotations', 'instances_' + set_name + '.json'))
+		self.coco      = COCO(os.path.join(data_dir, 'annotations', 'instances_' + set_name + '.json'))
 		self.image_ids = self.coco.getImgIds()
 
 		self.load_classes()
@@ -32,19 +32,19 @@ class CocoGenerator(Generator):
 	def load_classes(self):
 		""" Loads the class to label mapping (and inverse) for COCO.
 		"""
-		# load class names (name -> label)
+		# Load class names (name -> label).
 		categories = self.coco.loadCats(self.coco.getCatIds())
 		categories.sort(key=lambda x: x['id'])
 
-		self.classes			 = {}
-		self.coco_labels		 = {}
+		self.classes             = {}
+		self.coco_labels         = {}
 		self.coco_labels_inverse = {}
 		for c in categories:
 			self.coco_labels[len(self.classes)] = c['id']
 			self.coco_labels_inverse[c['id']] = len(self.classes)
 			self.classes[c['name']] = len(self.classes)
 
-		# also load the reverse (label -> name)
+		# Also load the reverse (label -> name).
 		self.labels = {}
 		for key, value in self.classes.items():
 			self.labels[value] = key
@@ -105,24 +105,24 @@ class CocoGenerator(Generator):
 		""" Load an image at the image_index.
 		"""
 		image_info = self.coco.loadImgs(self.image_ids[image_index])[0]
-		path	   = os.path.join(self.data_dir, 'images', self.set_name, image_info['file_name'])
+		path       = os.path.join(self.data_dir, 'images', self.set_name, image_info['file_name'])
 		return read_image_bgr(path)
 
 	def load_annotations(self, image_index):
 		""" Load annotations for an image_index.
 		"""
-		# get ground truth annotations
+		# Get ground truth annotations.
 		annotations_ids = self.coco.getAnnIds(imgIds=self.image_ids[image_index], iscrowd=False)
-		annotations		= {'labels': np.empty((0,)), 'bboxes': np.empty((0, 4))}
+		annotations     = {'labels': np.empty((0,)), 'bboxes': np.empty((0, 4))}
 
-		# some images appear to miss annotations (like image with id 257034)
+		# Some images appear to miss annotations (like image with id 257034).
 		if len(annotations_ids) == 0:
 			return annotations
 
-		# parse annotations
+		# Parse annotations
 		coco_annotations = self.coco.loadAnns(annotations_ids)
 		for idx, a in enumerate(coco_annotations):
-			# some annotations have basically no width / height, skip them
+			# Some annotations have basically no width / height, skip them.
 			if a['bbox'][2] < 1 or a['bbox'][3] < 1:
 				continue
 
@@ -135,4 +135,3 @@ class CocoGenerator(Generator):
 			]]], axis=0)
 
 		return annotations
-
