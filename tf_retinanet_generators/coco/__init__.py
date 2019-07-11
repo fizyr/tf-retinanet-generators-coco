@@ -1,6 +1,7 @@
 from .generator import CocoGenerator
 from .eval      import CocoEval
 
+
 def from_config(config, **kwargs):
 	generators = {}
 	if config['train_set_name'] is not None:

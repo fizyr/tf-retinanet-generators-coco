@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='generators-coco',
+    name='tf-retinanet-generators-coco',
 
     version='1',
 
@@ -12,7 +12,7 @@ setup(
     author_email='',
 
     license='',
-    packages=['generators.coco'],
+    packages=['tf_retinanet_generators.coco'],
     install_requires = ['tf-retinanet'],
     zip_safe=False,
 )
