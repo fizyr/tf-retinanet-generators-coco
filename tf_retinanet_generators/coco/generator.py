@@ -13,7 +13,7 @@ class CocoGenerator(Generator):
 	See https://github.com/cocodataset/cocoapi/tree/master/PythonAPI for more information.
 	"""
 
-	def __init__(self, data_dir, set_name, **kwargs):
+	def __init__(self, config, data_dir, set_name, preprocess_image):
 		""" Initialize a COCO data generator.
 
 		Args
@@ -27,7 +27,7 @@ class CocoGenerator(Generator):
 
 		self.load_classes()
 
-		super(CocoGenerator, self).__init__(**kwargs)
+		super(CocoGenerator, self).__from_config__(config, preprocess_image)
 
 	def load_classes(self):
 		""" Loads the class to label mapping (and inverse) for COCO.
