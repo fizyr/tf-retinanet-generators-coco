@@ -40,7 +40,7 @@ def set_defaults(config):
 	return config
 
 
-def from_config(config, preprocess_image, **kwargs):
+def from_config(config, submodels, preprocess_image, **kwargs):
 	generators = {}
 
 	config = set_defaults(config)
@@ -49,9 +49,12 @@ def from_config(config, preprocess_image, **kwargs):
 	if ('data_dir' not in config) or not config['data_dir']:
 		config['data_dir'] = input('Please input the COCO dataset folder:')
 
+	num_classes = 0
+
 	# If needed get the train generator.
 	if config['train_set_name'] is not None:
 		generators['train'] = CocoGenerator(config, config['data_dir'], config['train_set_name'], preprocess_image)
+		num_classes = generators['train'].num_classes()
 
 	# Disable the transformations after getting the train generator.
 	config['transform_generator']     = None
@@ -60,11 +63,19 @@ def from_config(config, preprocess_image, **kwargs):
 	# If needed get the validation generator.
 	if config['validation_set_name'] is not None:
 		generators['validation'] = CocoGenerator(config, config['data_dir'], config['validation_set_name'], preprocess_image)
+		num_classes = generators['validation'].num_classes()
 
 	# If needed get the test generator.
 	if config['test_set_name'] is not None:
 		generators['test'] = CocoGenerator(config, config['data_dir'], config['test_set_name'], preprocess_image)
+		num_classes = generators['test'].num_classes()
 
 	generators['custom_evaluation']          = evaluate_coco
 	generators['custom_evaluation_callback'] = CocoEval
-	return generators
+
+
+	# Set up the submodels for this generator.
+	assert num_classes != 0, "Got 0 classes from the generator."
+	for n, submodel in enumerate(submodels):
+		submodels[n] = submodel(num_classes=num_classes)
+	return generators, submodels
