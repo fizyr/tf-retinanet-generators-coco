@@ -40,9 +40,10 @@ def set_defaults(config):
 	return config
 
 
-def from_config(config, submodels, preprocess_image, **kwargs):
+def from_config(config, submodels_manager, preprocess_image, **kwargs):
 	generators = {}
 
+	# Set default configuration parameters.
 	config = set_defaults(config)
 
 	# If no data dir is set ask the user for it.
@@ -75,7 +76,9 @@ def from_config(config, submodels, preprocess_image, **kwargs):
 
 
 	# Set up the submodels for this generator.
+	assert not submodels_manager.num_classes(), "Classification already has a setup number of classes."
 	assert num_classes != 0, "Got 0 classes from the generator."
-	for n, submodel in enumerate(submodels):
-		submodels[n] = submodel(num_classes=num_classes)
-	return generators, submodels
+
+	submodels_manager.create(num_classes=num_classes)
+
+	return generators, submodels_manager.get_submodels()
