@@ -28,17 +28,18 @@ class CocoGenerator(Generator):
 	See https://github.com/cocodataset/cocoapi/tree/master/PythonAPI for more information.
 	"""
 
-	def __init__(self, config, data_dir, set_name, preprocess_image):
+	def __init__(self, config, set_name, preprocess_image):
 		""" Initialize a COCO data generator.
 
 		Args
 			data_dir: Path to where the COCO dataset is stored.
 			set_name: Name of the set to parse.
 		"""
-		self.data_dir  = data_dir
+		self.data_dir  = config['data_dir']
 		self.set_name  = set_name
-		self.coco      = COCO(os.path.join(data_dir, 'annotations', 'instances_' + set_name + '.json'))
+		self.coco      = COCO(os.path.join(self.data_dir, 'annotations', 'instances_' + set_name + '.json'))
 		self.image_ids = self.coco.getImgIds()
+		self.mask      = config['mask']
 
 		self.load_classes()
 
@@ -134,6 +135,12 @@ class CocoGenerator(Generator):
 		if len(annotations_ids) == 0:
 			return annotations
 
+		# If needed get info for masks.
+		if self.mask:
+			# Get image info.
+			image_info = self.coco.loadImgs(self.image_ids[image_index])[0]
+			annotations['masks'] = []
+
 		# Parse annotations
 		coco_annotations = self.coco.loadAnns(annotations_ids)
 		for idx, a in enumerate(coco_annotations):
@@ -148,5 +155,20 @@ class CocoGenerator(Generator):
 				a['bbox'][0] + a['bbox'][2],
 				a['bbox'][1] + a['bbox'][3],
 			]]], axis=0)
+
+			# If needed get annotations for masks.
+			if self.mask:
+				if 'segmentation' not in a:
+					raise ValueError('Expected \'segmentation\' key in annotation, got: {}'.format(a))
+
+				mask = np.zeros((image_info['height'], image_info['width'], 1), dtype=np.uint8)
+				for seg in a['segmentation']:
+					points = np.array(seg).reshape((len(seg) // 2, 2)).astype(int)
+
+					# Draw mask.
+					cv2.fillPoly(mask, [points.astype(int)], (1,))
+
+				annotations['masks'].append(mask.astype(float))
+
 
 		return annotations
