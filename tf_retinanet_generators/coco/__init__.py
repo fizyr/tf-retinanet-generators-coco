@@ -14,29 +14,26 @@ limitations under the License.
 """
 
 from .generator import CocoGenerator
-from .eval      import evaluate_coco
-from .eval      import CocoEval
+from .eval      import evaluate_coco, CocoEval
+from tf_retinanet.utils.config import set_defaults
 
 
 default_config = {
-		'train_set_name'      : 'train2017',
-		'validation_set_name' : 'val2017',
-		'test_set_name'       : 'test2017'
+	'train_set_name'     : 'train2017',
+	'validation_set_name': 'val2017',
+	'test_set_name'      : 'val2017'
 }
-
-def set_defaults(config):
-	return {**default_config, **config}
 
 
 def from_config(config, submodels_manager, preprocess_image, **kwargs):
-	generators = {}
-
 	# Set default configuration parameters.
-	config = set_defaults(config)
+	config = set_defaults(config, default_config)
 
-	# If no data dir is set ask the user for it.
+	# If no data dir is set, ask the user for it.
 	if ('data_dir' not in config) or not config['data_dir']:
 		config['data_dir'] = input('Please input the COCO dataset folder:')
+
+	generators = {}
 
 	# We should get the number of classes from the generators.
 	num_classes = 0
@@ -47,8 +44,8 @@ def from_config(config, submodels_manager, preprocess_image, **kwargs):
 		num_classes = generators['train'].num_classes()
 
 	# Disable the transformations after getting the train generator.
-	config['transform_generator']     = None
-	config['visual_effect_generator'] = None
+	config['transform_generator_class']     = None
+	config['visual_effect_generator_class'] = None
 
 	# If needed, get the validation generator.
 	if config['validation_set_name'] is not None:
