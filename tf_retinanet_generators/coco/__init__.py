@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .generator import CocoGenerator
+from .generator import get_coco_generator
 from .eval      import evaluate_coco, CocoEval
 from tf_retinanet.utils.config import set_defaults
 
@@ -38,6 +38,14 @@ def from_config(config, submodels_manager, preprocess_image, **kwargs):
 
 	# We should get the number of classes from the generators.
 	num_classes = 0
+
+	# Get the generator that supports masks if needed.
+	if config['mask']:
+		from tf_maskrcnn_retinanet.generators import Generator
+	else:
+		from tf_retinanet.generators import Generator
+	CocoGenerator = get_coco_generator(Generator)
+
 
 	# If needed, get the train generator.
 	if config['train_set_name'] is not None:

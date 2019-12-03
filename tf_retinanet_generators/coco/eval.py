@@ -23,7 +23,7 @@ import progressbar
 assert(callable(progressbar.progressbar)), "Using wrong progressbar module, install 'progressbar2' instead."
 
 
-def evaluate_coco(generator, model, threshold=0.05):
+def evaluate_coco(generator, model, threshold=0.05, use_mask=False):
 	""" Use the pycocotools to evaluate a COCO model on a dataset.
 
 	Args
@@ -43,7 +43,15 @@ def evaluate_coco(generator, model, threshold=0.05):
 			image = image.transpose((2, 0, 1))
 
 		# Run network.
-		boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
+		outputs = model.predict_on_batch(np.expand_dims(image, axis=0))
+		boxes   = outputs[0]
+		scores  = outputs[1]
+		labels  = outputs[2]
+
+		if use_mask:
+			import cv2
+			from pycocotools import mask as mask_utils
+			masks = outputs[3]
 
 		# Correct boxes for image scale.
 		boxes /= scale
@@ -52,8 +60,17 @@ def evaluate_coco(generator, model, threshold=0.05):
 		boxes[:, :, 2] -= boxes[:, :, 0]
 		boxes[:, :, 3] -= boxes[:, :, 1]
 
+		elements = [boxes[0], scores[0], labels[0]]
+
+		if use_mask:
+			elements.append(masks[0])
+
 		# Compute predicted labels and scores.
-		for box, score, label in zip(boxes[0], scores[0], labels[0]):
+		for output in zip(elements):
+			box   = output[0]
+			score = output[1]
+			label = output[2]
+
 			# Scores are sorted, so we can break.
 			if score < threshold:
 				break
@@ -65,6 +82,20 @@ def evaluate_coco(generator, model, threshold=0.05):
 				'score'       : float(score),
 				'bbox'        : box.tolist(),
 			}
+
+			if use_mask:
+				mask = mask.astype(np.float32)
+				mask = cv2.resize(mask[:, :, label], (b[2], b[3]))
+				mask = (mask > 0.5).astype(np.uint8)  # binarize for encoding as RLE
+
+				segmentation = np.zeros((image_shape[0], image_shape[1]), dtype=np.uint8)
+				segmentation[b[1]:b[1] + b[3], b[0]:b[0] + b[2]] = mask
+				segmentation = mask_utils.encode(np.asfortranarray(segmentation))
+
+				image_result['segmentation']: segmentation
+				# Convert byte to str to write in json (in Python 3).
+				if not isinstance(image_result['segmentation']['counts'], str):
+					image_result['segmentation']['counts'] = image_result['segmentation']['counts'].decode()
 
 			# Append detection to results.
 			results.append(image_result)
@@ -95,7 +126,7 @@ def evaluate_coco(generator, model, threshold=0.05):
 class CocoEval(tf.keras.callbacks.Callback):
 	""" Performs COCO evaluation on each epoch.
 	"""
-	def __init__(self, generator, tensorboard=None, threshold=0.05):
+	def __init__(self, generator, tensorboard=None, threshold=0.05, use_mask=False):
 		""" CocoEval callback intializer.
 		Args
 			generator   : The generator used for creating validation data.
@@ -105,6 +136,7 @@ class CocoEval(tf.keras.callbacks.Callback):
 		self.generator = generator
 		self.threshold = threshold
 		self.tensorboard = tensorboard
+		self.use_mask = use_mask
 
 		super(CocoEval, self).__init__()
 
@@ -125,7 +157,7 @@ class CocoEval(tf.keras.callbacks.Callback):
 			'AR @[ IoU=0.50:0.95 | area=medium | maxDets=100 ]',
 			'AR @[ IoU=0.50:0.95 | area= large | maxDets=100 ]'
 		]
-		coco_eval_stats = evaluate_coco(self.generator, self.model, self.threshold)
+		coco_eval_stats = evaluate_coco(self.generator, self.model, self.threshold, self.use_mask)
 		if coco_eval_stats is not None and self.tensorboard is not None and self.tensorboard.writer is not None:
 			summary = tf.Summary()
 			for index, result in enumerate(coco_eval_stats):
