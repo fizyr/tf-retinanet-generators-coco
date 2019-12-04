@@ -14,7 +14,7 @@ limitations under the License.
 """
 
 from .generator import get_coco_generator
-from .eval      import evaluate_coco, CocoEval
+from .eval      import get_coco_evaluation, get_coco_evaluation_callback
 from tf_retinanet.utils.config import set_defaults
 
 
@@ -66,8 +66,8 @@ def from_config(config, submodels_manager, preprocess_image, **kwargs):
 		generators['test'] = CocoGenerator(config, config['test_set_name'], preprocess_image)
 		num_classes = generators['test'].num_classes()
 
-	generators['custom_evaluation']          = evaluate_coco
-	generators['custom_evaluation_callback'] = CocoEval
+	generators['custom_evaluation']          = get_coco_evaluation(config['mask'])
+	generators['custom_evaluation_callback'] = get_coco_evaluation_callback(['mask'])
 
 	# Set up the submodels for this generator.
 	assert num_classes != 0, "Got 0 classes from COCO generator."
