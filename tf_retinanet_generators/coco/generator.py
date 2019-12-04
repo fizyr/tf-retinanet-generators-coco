@@ -40,7 +40,7 @@ class CocoGenerator(Generator):
 
 		self.load_classes()
 
-		super(CocoGenerator, self).__from_config__(config, preprocess_image)
+		super(CocoGenerator, self).__from_config__(config, preprocess_image=preprocess_image)
 
 	def load_classes(self):
 		""" Loads the class to label mapping (and inverse) for COCO.
