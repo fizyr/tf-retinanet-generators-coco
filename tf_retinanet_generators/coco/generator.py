@@ -24,13 +24,11 @@ from pycocotools.coco import COCO
 
 class CocoGenerator(Generator):
 	""" Generate data from the COCO dataset.
-
 	See https://github.com/cocodataset/cocoapi/tree/master/PythonAPI for more information.
 	"""
 
 	def __init__(self, config, data_dir, set_name, preprocess_image):
 		""" Initialize a COCO data generator.
-
 		Args
 			data_dir: Path to where the COCO dataset is stored.
 			set_name: Name of the set to parse.
