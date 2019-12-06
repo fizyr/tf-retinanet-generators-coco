@@ -56,9 +56,6 @@ def get_coco_evaluation(use_mask=False):
 			scores  = outputs[-2 - offset]
 			labels  = outputs[-1 - offset]
 
-			if use_mask:
-				masks = outputs[-1]
-
 			# Correct boxes for image scale.
 			boxes /= scale
 
@@ -69,6 +66,7 @@ def get_coco_evaluation(use_mask=False):
 			elements = [boxes[0], scores[0], labels[0]]
 
 			if use_mask:
+				masks = outputs[-1]
 				elements.append(masks[0])
 
 			# Compute predicted labels and scores.
@@ -151,10 +149,10 @@ def get_coco_evaluation_callback(use_mask=False):
 				tensorboard : If given, the results will be written to tensorboard.
 				threshold   : The score threshold to use.
 			"""
-			self.generator = generator
-			self.threshold = threshold
+			self.generator   = generator
+			self.threshold   = threshold
 			self.tensorboard = tensorboard
-			self.use_mask = use_mask
+			self.use_mask    = use_mask
 
 			super(CocoEval, self).__init__()
 

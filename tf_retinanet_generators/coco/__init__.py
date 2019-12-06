@@ -67,7 +67,7 @@ def from_config(config, submodels_manager, preprocess_image, **kwargs):
 		num_classes = generators['test'].num_classes()
 
 	generators['custom_evaluation']          = get_coco_evaluation(config['mask'])
-	generators['custom_evaluation_callback'] = get_coco_evaluation_callback(['mask'])
+	generators['custom_evaluation_callback'] = get_coco_evaluation_callback(config['mask'])
 
 	# Set up the submodels for this generator.
 	assert num_classes != 0, "Got 0 classes from COCO generator."

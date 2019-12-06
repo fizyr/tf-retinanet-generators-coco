@@ -32,8 +32,15 @@ def get_coco_generator(base_generator):
 			""" Initialize a COCO data generator.
 
 			Args
-				data_dir: Path to where the COCO dataset is stored.
-				set_name: Name of the set to parse.
+				config : Dictionary containing information about the generator.
+					It should contain:
+						data_dir            : Path or list of paths to the dataset directory.
+						train_set_name      : Train set name.
+						validation_set_name : Validation set name.
+						test_set_name       : Test set name.
+						mask                : Flag to enable mask loading.
+				set_name        : Name of the set to parse.
+				preprocess_image: Function to preprocess images.
 			"""
 			self.data_dir  = config['data_dir']
 			self.set_name  = set_name
