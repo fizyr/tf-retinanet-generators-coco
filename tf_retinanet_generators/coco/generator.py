@@ -3,9 +3,7 @@ Copyright 2017-2019 Fizyr (https://fizyr.com)
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
 	http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,13 +22,10 @@ def get_coco_generator(base_generator):
 
 	class CocoGenerator(base_generator):
 		""" Generate data from the COCO dataset.
-
 		See https://github.com/cocodataset/cocoapi/tree/master/PythonAPI for more information.
 		"""
-
 		def __init__(self, config, set_name, preprocess_image):
 			""" Initialize a COCO data generator.
-
 			Args
 				config : Dictionary containing information about the generator.
 					It should contain:
@@ -50,7 +45,7 @@ def get_coco_generator(base_generator):
 
 			self.load_classes()
 
-			super(CocoGenerator, self).__from_config__(config, preprocess_image)
+			super(CocoGenerator, self).__from_config__(config, preprocess_image=preprocess_image)
 
 		def load_classes(self):
 			""" Loads the class to label mapping (and inverse) for COCO.

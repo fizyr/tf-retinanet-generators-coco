@@ -27,6 +27,23 @@ default_config = {
 
 
 def from_config(config, submodels_manager, preprocess_image, **kwargs):
+	""" Return generators and submodels as indicated in the config.
+		The number of classes (necessary for creating the classification submodel)
+		is taken from the COCO generators. Hence, submodels can be initialized only after the generators.
+	Args
+		config : Dictionary containing information about the generators.
+				 It should contain:
+					data_dir            : Path to the directory where the dataset is stored.
+					train_set_name      : Name of the training set.
+					validation_set_name : Name of the validation set.
+					test_set_name       : Name of the test set.
+				 If not specified, default values indicated above will be used.
+		submodel_manager : Class that handles and initializes the submodels.
+		preprocess_image : Function that describes how to preprocess images in the generators.
+	Return
+		generators : Dictionary containing generators and evaluation procedures.
+		submodels  : List of initialized submodels.
+	"""
 	# Set default configuration parameters.
 	config = set_defaults(config, default_config)
 
@@ -66,8 +83,8 @@ def from_config(config, submodels_manager, preprocess_image, **kwargs):
 		generators['test'] = CocoGenerator(config, config['test_set_name'], preprocess_image)
 		num_classes = generators['test'].num_classes()
 
-	generators['custom_evaluation']          = get_coco_evaluation(config['mask'])
-	generators['custom_evaluation_callback'] = get_coco_evaluation_callback(config['mask'])
+	generators['evaluation_procedure'] = get_coco_evaluation(config['mask'])
+	generators['evaluation_callback']  = get_coco_evaluation_callback(config['mask'])
 
 	# Set up the submodels for this generator.
 	assert num_classes != 0, "Got 0 classes from COCO generator."
