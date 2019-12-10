@@ -13,15 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .generator import CocoGenerator
-from .eval      import evaluate_coco, CocoEval
+from .generator import get_coco_generator
+from .eval      import get_coco_evaluation, get_coco_evaluation_callback
 from tf_retinanet.utils.config import set_defaults
 
 
 default_config = {
-	'train_set_name'      : 'train2017',
-	'validation_set_name' : 'val2017',
-	'test_set_name'       : 'val2017',
+	'train_set_name'     : 'train2017',
+	'validation_set_name': 'val2017',
+	'test_set_name'      : 'val2017',
+	'mask'               : False
 }
 
 
@@ -55,9 +56,17 @@ def from_config(config, submodels_manager, preprocess_image, **kwargs):
 	# We should get the number of classes from the generators.
 	num_classes = 0
 
+	# Get the generator that supports masks if needed.
+	if config['mask']:
+		from tf_maskrcnn_retinanet.generators import Generator
+	else:
+		from tf_retinanet.generators import Generator
+	CocoGenerator = get_coco_generator(Generator)
+
+
 	# If needed, get the train generator.
 	if config['train_set_name'] is not None:
-		generators['train'] = CocoGenerator(config, config['data_dir'], config['train_set_name'], preprocess_image)
+		generators['train'] = CocoGenerator(config, config['train_set_name'], preprocess_image)
 		num_classes = generators['train'].num_classes()
 
 	# Disable the transformations after getting the train generator.
@@ -66,16 +75,16 @@ def from_config(config, submodels_manager, preprocess_image, **kwargs):
 
 	# If needed, get the validation generator.
 	if config['validation_set_name'] is not None:
-		generators['validation'] = CocoGenerator(config, config['data_dir'], config['validation_set_name'], preprocess_image)
+		generators['validation'] = CocoGenerator(config, config['validation_set_name'], preprocess_image)
 		num_classes = generators['validation'].num_classes()
 
 	# If needed, get the test generator.
 	if config['test_set_name'] is not None:
-		generators['test'] = CocoGenerator(config, config['data_dir'], config['test_set_name'], preprocess_image)
+		generators['test'] = CocoGenerator(config, config['test_set_name'], preprocess_image)
 		num_classes = generators['test'].num_classes()
 
-	generators['evaluation_procedure'] = evaluate_coco
-	generators['evaluation_callback']  = CocoEval
+	generators['evaluation_procedure'] = get_coco_evaluation(config['mask'])
+	generators['evaluation_callback']  = get_coco_evaluation_callback(config['mask'])
 
 	# Set up the submodels for this generator.
 	assert num_classes != 0, "Got 0 classes from COCO generator."
