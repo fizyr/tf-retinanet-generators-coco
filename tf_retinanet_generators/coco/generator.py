@@ -24,7 +24,7 @@ def get_coco_generator(base_generator):
 		""" Generate data from the COCO dataset.
 		See https://github.com/cocodataset/cocoapi/tree/master/PythonAPI for more information.
 		"""
-		def __init__(self, config, set_name, preprocess_image):
+		def __init__(self, config, set_name, preprocess_image, transform_generator=None, visual_effect_generator=None):
 			""" Initialize a COCO data generator.
 			Args
 				config : Dictionary containing information about the generator.

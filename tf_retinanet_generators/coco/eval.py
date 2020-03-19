@@ -48,7 +48,7 @@ def get_coco_evaluation(use_mask=False):
 				offset = 1
 
 			# Run network.
-			outputs = model.predict_on_batch(np.expand_dims(image, axis=0))
+			outputs = model.predict(np.expand_dims(image, axis=0))
 			boxes   = outputs[-3 - offset]
 			scores  = outputs[-2 - offset]
 			labels  = outputs[-1 - offset]

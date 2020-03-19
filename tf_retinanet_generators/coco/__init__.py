@@ -4,7 +4,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-	http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ default_config = {
 }
 
 
-def from_config(config, submodels_manager, preprocess_image, **kwargs):
+def from_config(config, transform_generator, visual_effect_generator, submodels_manager, preprocess_image, **kwargs):
 	""" Return generators and submodels as indicated in the config.
 		The number of classes (necessary for creating the classification submodel)
 		is taken from the COCO generators. Hence, submodels can be initialized only after the generators.
@@ -38,8 +38,10 @@ def from_config(config, submodels_manager, preprocess_image, **kwargs):
 					validation_set_name : Name of the validation set.
 					test_set_name       : Name of the test set.
 				 If not specified, default values indicated above will be used.
-		submodel_manager : Class that handles and initializes the submodels.
-		preprocess_image : Function that describes how to preprocess images in the generators.
+		transform_generator     : Generator for making random geometric transformations.
+		visual_effect_generator : Generator for creating random visual effects.
+		submodel_manager        : Class that handles and initializes the submodels.
+		preprocess_image        : Function that describes how to preprocess images in the generators.
 	Return
 		generators : Dictionary containing generators and evaluation procedures.
 		submodels  : List of initialized submodels.
@@ -63,15 +65,10 @@ def from_config(config, submodels_manager, preprocess_image, **kwargs):
 		from tf_retinanet.generators import Generator
 	CocoGenerator = get_coco_generator(Generator)
 
-
 	# If needed, get the train generator.
 	if config['train_set_name'] is not None:
-		generators['train'] = CocoGenerator(config, config['train_set_name'], preprocess_image)
+		generators['train'] = CocoGenerator(config, config['train_set_name'], preprocess_image, transform_generator=transform_generator, visual_effect_generator=visual_effect_generator)
 		num_classes = generators['train'].num_classes()
-
-	# Disable the transformations after getting the train generator.
-	config['transform_generator_class']     = None
-	config['visual_effect_generator_class'] = None
 
 	# If needed, get the validation generator.
 	if config['validation_set_name'] is not None:
@@ -89,7 +86,4 @@ def from_config(config, submodels_manager, preprocess_image, **kwargs):
 	# Set up the submodels for this generator.
 	assert num_classes != 0, "Got 0 classes from COCO generator."
 
-	# Instantiate the submodels for this generator.
-	submodels_manager.create(num_classes=num_classes)
-
-	return generators, submodels_manager.get_submodels()
+	return generators, submodels_manager.create()
