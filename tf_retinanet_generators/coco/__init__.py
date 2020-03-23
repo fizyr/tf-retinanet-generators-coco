@@ -86,4 +86,4 @@ def from_config(config, transform_generator, visual_effect_generator, submodels_
 	# Set up the submodels for this generator.
 	assert num_classes != 0, "Got 0 classes from COCO generator."
 
-	return generators, submodels_manager.create()
+	return generators
